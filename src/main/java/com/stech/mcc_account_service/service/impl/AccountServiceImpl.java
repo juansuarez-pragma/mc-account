@@ -3,6 +3,7 @@ package com.stech.mcc_account_service.service.impl;
 import com.stech.mcc_account_service.client.ICustomerRestClient;
 import com.stech.mcc_account_service.dto.AccountDTO;
 import com.stech.mcc_account_service.dto.CustomerDTO;
+import com.stech.mcc_account_service.dto.DepositDTO;
 import com.stech.mcc_account_service.entity.AccountEntity;
 import com.stech.mcc_account_service.repository.IAccountRepository;
 import com.stech.mcc_account_service.service.interfaces.IAccountService;
@@ -12,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Log4j2
 @Service
@@ -55,5 +57,18 @@ public class AccountServiceImpl implements IAccountService {
     @Override
     public AccountDTO getById(String id) {
         return null;
+    }
+
+    @Override
+    public AccountDTO depositInAccount(DepositDTO depositDTO) {
+        log.info("Deposit into acount repository, {}", depositDTO);
+        Optional<AccountEntity> optionalAccountEntity = this.accountRepository
+                .findByAccountNumberAndCustomerCu(depositDTO.getAccountNumber(), depositDTO.getCustomerCu());
+        if (optionalAccountEntity.isPresent()) {
+            AccountEntity accountEntity = optionalAccountEntity.get();
+            accountEntity.setAccountBalance(accountEntity.getAccountBalance().add(depositDTO.getAmount()));
+            return this.accountRepository.save(accountEntity).getDto();
+        }
+        return AccountDTO.builder().build();
     }
 }
